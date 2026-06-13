@@ -53,7 +53,7 @@ void limparBuffer()
     while ((c = getchar()) != '\n' && c != EOF)
         ;
 }
-
+// Função para cadastrar nome, numero da matricula e notas
 void cadastrarAluno(FILE *arquivo, const char caminho[])
 {
     Aluno alunoNovo;
