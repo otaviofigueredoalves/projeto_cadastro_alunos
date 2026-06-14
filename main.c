@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <windows.h>
-#include <locale.h>
 
 typedef struct
 {
@@ -10,38 +8,8 @@ typedef struct
     int matricula;
     double notas[3];
 } Aluno;
-// FunÁ„o feita para escrever uma string sem limite de caracteres.
-void colocarValorString(char **string, const size_t tamanhoMax)
-{
-    size_t auxTamanhoMax = tamanhoMax;
-    size_t posicaoString = 0;
-    char caracterAtual;
-    /* O codigo abaixo ler caracter por caracter ate o usuario clicar "enter" ou o terminal for fechado. Se n„o tiver
-    o "caracterAtual != EOF" pode acontecer do codigo rodar em segundo plano por um breve momento na hora que fechar
-    o terminal, podendo estourar a memÛria RAM do computador.
-    */
-    while ((caracterAtual = (char)getchar()) != '\n' && caracterAtual != EOF)
-    {
-        // Se a posiÁ„o atual da minha string + 1, ultrapasar o meu tamanho maximo da minha string, o tamanho da minha string vai ser duplicado
-        if (posicaoString + 1 >= auxTamanhoMax)
-        {
-            auxTamanhoMax *= 2;
-            char *temporario = (char *)realloc(*string, auxTamanhoMax * sizeof(char));
-            if (temporario == NULL)
-            {
-                printf("Erro ao realocar memÛria\n");
-                free(*string);
-                return;
-            }
-            *string = temporario;
-        }
-        (*string)[posicaoString] = caracterAtual;
-        posicaoString++;
-    }
-    (*string)[posicaoString] = '\0';
-}
-// FunÁ„o feita para validar se o nome tem so caracteres v·lidos (letras com e sem acento e espaÁo).
-int verificarNome(char string[])
+// Fun√ß√£o feita para validar se o nome tem caracteres validos: letras com ou sem acento ou espa√ßos
+int verificarCaracteresValidosNome(char string[])
 {
     for (size_t i = 0; i < strlen(string); i++)
     {
@@ -49,125 +17,123 @@ int verificarNome(char string[])
         if (((string[i] < 65 || (string[i] > 90 && string[i] < 97)) || string[i] > 122) && string[i] != 32)
         {
             // Guardo todas as letras com acentos.
-            const char *acentos_validos = "·‡„‚ÈÍÌÛÙı˙Á¡¿√¬… Õ”‘’⁄«";
+            const char *acentos_validos = "√°√†√£√¢√©√™√≠√≥√¥√µ√∫√ß√Å√Ä√É√Ç√â√ä√ç√ì√î√ï√ö√á";
             char *temAcento;
-            // Valida se a "string[i]" esta presente no vetor "acentos_validos" , se tiver significa que ela È uma letra com acento.
+            // Valida se a "string[i]" esta presente no vetor "acentos_validos" , se tiver significa que ela √© uma letra com acento.
             temAcento = strchr(acentos_validos, string[i]);
-            // Se o caracter n„o for uma letra com acento, ele para o codigo na hora e retorna 1.
+            // Se o caracter n√£o for uma letra com acento, ele para o codigo na hora e retorna 1.
             if (temAcento == NULL)
             {
-                return 1;
+                return 0;
             }
         }
     }
-    return 0;
+    return 1;
 }
-// FunÁ„o feita para validar se o numero da matricula tÍm somente numeros
-int verificarMatricula(char string[])
+// Verifica se dentro do arquivo ja tem aquela matricula
+int verificarDuplicidadeNumeroDaMatricula(int numeroDaMatricula, FILE *arquivo, const char caminho[])
 {
-    for (size_t i = 0; i < strlen(string); i++)
-    {
-        // Se a minha string tiver caracteres diferentes de numeros ela para e retorna 1.
-        if (string[i] < 48 || string[i] > 57)
+    arquivo = fopen(caminho, "r");
+    if (arquivo == NULL) return 1;
+    int matriculaAtual; 
+    while (fscanf(arquivo, "%*[^|]|%d|%*f|%*f|%*f\n", &matriculaAtual) != EOF) {
+        if(matriculaAtual == numeroDaMatricula)
         {
-            return 1;
+            fclose(arquivo);
+            return 0;
         }
     }
-    return 0;
+    fclose(arquivo);
+    return 1;
 }
-int verificarNota(char string[])
+// Fun√ß√£o auxiliar para limpar o buffer do teclado sempre que usarmos scanf
+void limparBuffer()
 {
-    int virgulaApareceu = 0;
-    for (size_t i = 0; i < strlen(string); i++)
-    {
-        if (string[i] < 48 || string[i] > 57)
-        {
-            if (string[i] == ',' && virgulaApareceu == 0)
-            {
-                string[i] = '.';
-                virgulaApareceu = 1;
-            }
-            else
-            {
-                return 1;
-            }
-        }
-    }
-    double teste = atof(string);
-    if (teste < 0 || teste > 10)
-    {
-        return 1;
-    }
-    return 0;
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF)
+        ;
 }
-void cadastrarAluno(FILE *arquivo, const char caminhoDoArquivo[])
+// Fun√ß√£o para cadastrar nome, numero da matricula e notas
+void cadastrarAluno(FILE *arquivo, const char caminho[])
 {
     Aluno alunoNovo;
-    // const size_t tamanhoMaxNome = 51;
-    // char *auxNome = (char *)calloc(tamanhoMaxNome, sizeof(char));
-    // printf("Me informe seu nome:");
-    // colocarValorString(&auxNome, tamanhoMaxNome);
-    // while (strlen(auxNome) > 50 || verificarNome(auxNome) == 1)
-    // {
-    //     printf("\nErro,no nome ultrapassou o limite maximo de caracteres (50 caracteres) ou foi colocado um caracter invalido");
-    //     printf("\nCaracteres validos: letras com ou sem acento e espaÁo");
-    //     printf("\nMe informe seu nome novamente:");
-    //     colocarValorString(&auxNome, tamanhoMaxNome);
-    // }
-    // strcpy(alunoNovo.nome, auxNome);
-    // free(auxNome);
-
-    // const size_t tamanhoMaxMatricula = 10;
-    // // Crio uma variavel auxiliar para caso os usuarios tente add letras ou outros caracteres especiais.
-    // char *auxMatricula = (char *)calloc(tamanhoMaxMatricula, sizeof(char));
-    // printf("Me informe sua matricula:");
-    // colocarValorString(&auxMatricula, tamanhoMaxMatricula);
-    // while (strlen(auxMatricula) != 10 || verificarMatricula(auxMatricula) == 1)
-    // {
-    //     printf("Erro, voÁÍ digitou um numÈro menor ou maior que 10 digitos ou digitos invalidos");
-    //     printf("\nNa matricula so È aceito n˙meros de 0 a 9");
-    //     printf("\nMe informe sua matricula novamente:");
-    //     colocarValorString(&auxMatricula, tamanhoMaxMatricula);
-    // }
-    // // Apos garantir que minha variavel aux tem 10 digitos e so tem numeros eu transformo ela em int.
-    // alunoNovo.matricula = atoi(auxMatricula);
-    // free(auxMatricula);
-
-    const size_t tamanhoMaxNota = 4;
+    // Inicia as variaveis para caso usu√°rio tente adicionar outro tipo nas variaveis(exemplo: variavel inteiro e o usu√°rio coloca um 'c')
+    alunoNovo.matricula = 0;
     for (int i = 0; i < 3; i++)
     {
-        char *auxNota = (char *)calloc(tamanhoMaxNota, sizeof(char));
-        printf("Me informe sua %i∞ nota:", i + 1);
-        colocarValorString(&auxNota, tamanhoMaxNota);
-        while (strlen(auxNota) > 4 || verificarNota(auxNota) == 1)
-        {
-            printf("Erro, sÛ È aceito notas com no maximo duas casas decimais e notas de 0 a 10");
-            printf("\nMe informe sua %i∞ nota novamente:", i + 1 );
-            colocarValorString(&auxNota, tamanhoMaxNota);
-        }
-        alunoNovo.notas[i] = atof(auxNota);
-        printf("%f\n",alunoNovo.notas[i]);
+        alunoNovo.notas[i] = -1;
     }
-    // printf("%s|%i\n", alunoNovo.nome, alunoNovo.matricula);
-    // arquivo = fopen(caminhoDoArquivo, "a");
-    // if (arquivo == NULL)
-    // {
-    //     printf("ERRO AO ABRIR");
-    //     return;
-    // }
-    // fclose(arquivo);
+
+    printf("Me informe seu nome:");
+    // Ler a linha que vc escreveu e se tiver mais de 50 caracteres ou algum caracter inv√°lido ele da erro e pede para escrever o nome novamente
+    while (fgets(alunoNovo.nome, sizeof(alunoNovo.nome), stdin) != NULL)
+    {
+        int precisaLimpar = 0;
+        if (strlen(alunoNovo.nome) > 0 && alunoNovo.nome[strlen(alunoNovo.nome) - 1] != '\n')
+        {
+            precisaLimpar = 1;
+        }
+        alunoNovo.nome[strcspn(alunoNovo.nome, "\n")] = '\0';
+        if (precisaLimpar || strlen(alunoNovo.nome) == 0 || verificarCaracteresValidosNome(alunoNovo.nome) == 0)
+        {
+            if (precisaLimpar)
+            {
+                limparBuffer();
+            }
+            printf("Erro: O nome deve ter entre 1 e 50 caracteres validos.\n");
+            printf("Me informe seu nome novamente: ");
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    printf("Me informe sua matricula:");
+    scanf("%i", &alunoNovo.matricula);
+    while (alunoNovo.matricula / 10000000 == 0 || alunoNovo.matricula / 10000000 >= 10 || verificarDuplicidadeNumeroDaMatricula(alunoNovo.matricula,arquivo,caminho) == 0)
+    {
+        limparBuffer();
+        printf("Erro, sua matricula tem menos ou mais de 8 digitos num√©ricos ou vc digitou uma matricula ja existente\n");
+        printf("Me informe sua matricula novamente:");
+        scanf("%i", &alunoNovo.matricula);
+    }
+    limparBuffer();
+
+    for (int i = 0; i < 3; i++)
+    {
+        printf("Me informe sua %i¬∞ nota:", i + 1);
+        scanf("%lf", &alunoNovo.notas[i]);
+        while (alunoNovo.notas[i] < 0 || alunoNovo.notas[i] > 10)
+        {
+            limparBuffer();
+            printf("Erro: Permitido apenas notas entre 0 e 10\n");
+            printf("Me informe sua %i¬∞ nota novamente:", i + 1);
+            scanf("%lf", &alunoNovo.notas[i]);
+        }
+        limparBuffer();
+    }
+
+    arquivo = fopen(caminho, "a");
+    if (arquivo == NULL)
+    {
+        printf("Erro ao abrir o arquivo!\n");
+        return;
+    }
+
+    fprintf(arquivo, "%s|%i|%.1f|%.1f|%.1f\n",
+            alunoNovo.nome, alunoNovo.matricula, alunoNovo.notas[0], alunoNovo.notas[1], alunoNovo.notas[2]);
+
+    fclose(arquivo);
+    printf("\nAluno cadastrado com sucesso!\n");
 }
 
 int main()
 {
-    /* os metodos "SetConsoleCP" e "SetConsoleOutputCP" foram colocados para garantir que a entrada e saida tenham
-    os mesmos valores com relaÁ„o na tabela ASCII e o metodo "setlocale" foi para garantir que o algoritimo vai
-    ficar no pad„o do portugues */
-    setlocale(LC_ALL, "Portuguese");
-    SetConsoleCP(1252);
-    SetConsoleOutputCP(1252);
-    FILE *alunos;
-    const char caminhoTxt[] = "alunos.txt";
-    cadastrarAluno(alunos, caminhoTxt);
+    FILE *alunos = NULL;
+    const char caminhoTxT[] = "alunos.txt";
+
+    cadastrarAluno(alunos, caminhoTxT);
+
     return 0;
 }
