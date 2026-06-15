@@ -74,12 +74,11 @@ while (alunoNovo.matricula / 10000000 == 0 || alunoNovo.matricula / 10000000 >= 
 O projeto encontra-se em desenvolvimento ativo. As seguintes funcionalidades e melhorias estão planejadas para as próximas iterações:
 
 ### 🎯 Funcionalidades Principais
-- [ ] **Menu Interativo:** Implementação de uma interface textual estruturada via terminal no método `main` para navegação do usuário.
+- [X] **Menu Interativo:** Implementação de uma interface textual estruturada via terminal no método `main` para navegação do usuário.
 - [ ] **Exibição Geral do Sistema:** Criação de uma função para ler o arquivo e apresentar a listagem completa de todos os alunos registrados juntamente com suas respectivas matrículas.
-- [ ] **Métricas de Desempenho e Médias:** Desenvolver o cálculo automático da média aritmética das 3 notas de cada estudante. O formato de exibição desta métrica deve ser validado pela equipe técnica, podendo seguir por três caminhos dependendo do refinamento de requisitos:
-  * Exibição da média de forma coletiva (junto à listagem geral de todos os alunos);
-  * Consulta individualizada (através de uma função de busca por matrícula ou por nome);
-  * Ou a implementação de ambas as abordagens de consulta simultaneamente no menu.
+- [/] **Métricas de Desempenho e Médias:** Desenvolver o cálculo automático da média aritmética das 3 notas de cada estudante. O formato de exibição desta métrica deve ser de forma individual, buscando o aluno por matrícula,  e de forma geral apresentando todos os alunos.
+  * [ ] Exibição da média de forma coletiva (junto à listagem geral de todos os alunos);
+  * [X] Consulta individualizada (através de uma função de busca por matrícula ou por nome);
 - [ ] **Destaque Acadêmico:** Desenvolver um algoritmo de busca para identificar e exibir em tela o aluno que possui a **maior média geral** do sistema.
 
 ### ⚙️ Escalabilidade e Otimizações(Se for realmente necessário)
