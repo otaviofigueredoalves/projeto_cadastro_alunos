@@ -145,16 +145,19 @@ void buscarAlunoPorMatricula(FILE *arquivo, const char caminho[], int buscaNumer
     if (arquivo == NULL) printf("Erro, arquivo não abriu");
     int matriculaAtual;
     char auxNome[51];
-    // Ele corre todo o arquivio e pega o nome e o numero da matricula do aluno
-    while (fscanf(arquivo, "%[^|]|%i|%*f|%*f|%*f\n", auxNome, &matriculaAtual) != EOF)
+    double nota1, nota2, nota3;
+    // Ele corre todo o arquivio e pega o nome o numero da matricula e as notas do aluno
+    while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", auxNome, &matriculaAtual, &nota1, &nota2, &nota3) != EOF)
     {
         // Se o número da matriculaAtual for igual ao buscaNumeroDaMatricula apresenta o aluno na tela que tem tal matricula
         if (matriculaAtual == buscaNumeroDaMatricula)
         {
-            printf("O aluno portador da matricula %i é o %s", buscaNumeroDaMatricula, auxNome);
+            printf("\nAluno portador da matricula %i: \n", matriculaAtual);
+            printf("Nome: %s \n", auxNome);
+            printf("Notas: %.1f - %.1f - %.1f \n", nota1, nota2, nota3);
             fclose(arquivo);
             return;
-        }
+        }   
     }
     fclose(arquivo);
     // Se ele percorrer o arquivo todo e não encontrar o número da matricula la dentro, siginifica que não existe aquela matricula dentro do arquivo
@@ -164,6 +167,41 @@ int main()
 {
     FILE *alunos = NULL;
     const char caminhoTxT[] = "alunos.txt";
-    cadastrarAluno(alunos,caminhoTxT);
+    int opcao;
+    int matriculaBusca;
+
+    do
+    {
+        printf("\n===== MENU =====\n");
+        printf("1 - Cadastrar aluno\n");
+        printf("2 - Buscar aluno por matricula\n");
+        printf("0 - Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d", &opcao);
+        limparBuffer();
+
+        if (opcao == 1)
+        {
+            cadastrarAluno(alunos, caminhoTxT);
+        }
+        else if (opcao == 2)
+        {
+            printf("Digite a matricula que deseja buscar: ");
+            scanf("%d", &matriculaBusca);
+            limparBuffer();
+
+            buscarAlunoPorMatricula(alunos, caminhoTxT, matriculaBusca);
+        }
+        else if (opcao == 0)
+        {
+            printf("Saindo...\n");
+        }
+        else
+        {
+            printf("Opção invalida!\n");
+        }
+
+    } while (opcao != 0);
+
     return 0;
 }
