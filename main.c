@@ -164,18 +164,16 @@ void buscarAlunoPorMatricula(FILE *arquivo, const char caminho[], int buscaNumer
     arquivo = fopen(caminho, "r");
     if (arquivo == NULL)
         printf("Erro, arquivo não abriu");
-    int matriculaAtual;
-    char auxNome[51];
-    double nota1, nota2, nota3;
+    Aluno aluno;
     // Ele corre todo o arquivio e pega o nome o numero da matricula e as notas do aluno
-    while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", auxNome, &matriculaAtual, &nota1, &nota2, &nota3) != EOF)
+    while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", aluno.nome, &aluno.matricula, &aluno.notas[0], &aluno.notas[1], &aluno.notas[2]) != EOF)
     {
-        // Se o número da matriculaAtual for igual ao buscaNumeroDaMatricula apresenta o aluno na tela que tem tal matricula
-        if (matriculaAtual == buscaNumeroDaMatricula)
+        // Se o número da aluno.matricula for igual ao buscaNumeroDaMatricula apresenta o aluno na tela que tem tal matricula
+        if (aluno.matricula == buscaNumeroDaMatricula)
         {
             printf("Aluno da matricula %i encontrado\n", buscaNumeroDaMatricula);
-            printf("Aluno: %s\n", auxNome);
-            printf("Média do aluno: %.1f\n", (nota1 + nota2 + nota3) / 3);
+            printf("Aluno: %s\n", aluno.nome);
+            printf("Média do aluno: %.1lf\n", (aluno.notas[0] + aluno.notas[1] + aluno.notas[2]) / 3);
             fclose(arquivo);
             return;
         }
@@ -200,9 +198,7 @@ void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
             return;
         }
 
-        int matriculaAtual;
-        char auxNome[51];
-        double nota1, nota2, nota3;
+        Aluno aluno;
 
         int totalRegistros = 0;
         int exibidosNaPagina = 0;
@@ -214,13 +210,13 @@ void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
         printf("\n===== LISTAGEM DE ALUNOS (PAGINA %i) =====\n", paginaAtual);
 
         // Varre o arquivo linha por linha
-        while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", auxNome, &matriculaAtual, &nota1, &nota2, &nota3) != EOF)
+        while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", aluno.nome, &aluno.matricula, &aluno.notas[0], &aluno.notas[1], &aluno.notas[2]) != EOF)
         {
             // Se a linha atual estiver dentro do bloco da página, exibe na tela
             if (totalRegistros >= linhaInicial && totalRegistros < linhaFinal)
             {
-                double media = (nota1 + nota2 + nota3) / 3;
-                printf("Aluno: %-20s | Matricula: %-8i | Media: %.1f\n", auxNome, matriculaAtual, media);
+                double media = (aluno.notas[0] + aluno.notas[1] + aluno.notas[2]) / 3;
+                printf("Aluno: %-20s | Matricula: %-8i | Media: %.1f\n", aluno.nome, aluno.matricula, media);
                 exibidosNaPagina++;
             }
             totalRegistros++; // Conta quantos alunos existem no total do arquivo
@@ -239,10 +235,24 @@ void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
         if ((opcao == 'N' || opcao == 'n') && (linhaFinal < totalRegistros))
         {
             paginaAtual++;
+            #ifdef _WIN32
+                // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
+                system("cls");
+            #else
+                // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
+                system("clear");
+            #endif
         }
         else if ((opcao == 'A' || opcao == 'a') && paginaAtual > 1)
         {
             paginaAtual--;
+            #ifdef _WIN32
+                // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
+                system("cls");
+            #else
+                // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
+                system("clear");
+            #endif
         }
         else if (opcao != 'S' && opcao != 's')
         {
@@ -262,28 +272,26 @@ void destaqueAcademico(FILE *arquivo, const char caminho[])
         return;
     }
 
-    char nomeAtual[51];
-    int matriculaAtual;
-    double nota1, nota2, nota3;
+    Aluno aluno;
     double maiorMedia = -1.0;
 
     char nomeMaiorMedia[51];
     int matriculaMaiorMedia = 0;
 
     while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n",
-                  nomeAtual,
-                  &matriculaAtual,
-                  &nota1,
-                  &nota2,
-                  &nota3) != EOF)
+                  aluno.nome,
+                  &aluno.matricula,
+                  &aluno.notas[0],
+                  &aluno.notas[1],
+                  &aluno.notas[2]) != EOF)
     {
-        double media = (nota1 + nota2 + nota3) / 3.0;
+        double media = (aluno.notas[0] + aluno.notas[1] + aluno.notas[2]) / 3.0;
 
         if (media > maiorMedia)
         {
             maiorMedia = media;
-            matriculaMaiorMedia = matriculaAtual;
-            strcpy(nomeMaiorMedia, nomeAtual);
+            matriculaMaiorMedia = aluno.matricula;
+            strcpy(nomeMaiorMedia, aluno.nome);
         }
     }
 
@@ -344,12 +352,19 @@ int main()
         }
         else if (opcao == 3)
         {
+            #ifdef _WIN32
+                // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
+                system("cls");
+            #else
+                // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
+                system("clear");
+            #endif
             apresentarMediaDeTodosAlunos(alunos, caminhoTxT);
             limpaTela();
         }
         else if (opcao == 4)
         {
-            destaqueAcademico(alunos,caminhoTxT);
+            destaqueAcademico(alunos, caminhoTxT);
             limpaTela();
         }
         else if (opcao != 0)
