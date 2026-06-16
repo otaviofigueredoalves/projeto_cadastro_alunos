@@ -8,6 +8,25 @@ typedef struct
     int matricula;
     double notas[3];
 } Aluno;
+// Função feita para limpar o terminal
+void limpaTela()
+{
+    printf("Pressione qualquer tecla para continuar:");
+    getchar();
+    char c;
+    /* Caso o usuario digite um valor errado, exemplo: numero muito grande para um inteiro ou digitar um 'd'para
+    uma variavel do tipo inteiro é necessario limpar o buffer para evitar loops infinitos
+    */
+    while ((c = (char)getchar()) != '\n' && c != EOF)
+        ;
+#ifdef _WIN32
+    // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
+    system("cls");
+#else
+    // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
+    system("clear");
+#endif
+}
 // Função feita para validar se o nome tem caracteres validos: letras com ou sem acento ou espaços
 int verificarCaracteresValidosNome(char string[])
 {
@@ -34,7 +53,8 @@ int verificarCaracteresValidosNome(char string[])
 int verificarDuplicidadeNumeroDaMatricula(int numeroDaMatricula, FILE *arquivo, const char caminho[])
 {
     arquivo = fopen(caminho, "r");
-    if (arquivo == NULL) return 0;
+    if (arquivo == NULL)
+        return 0;
     int matriculaAtual;
     // Corro todo o arquivo pegando o valor da matricula
     while (fscanf(arquivo, "%*[^|]|%i|%*f|%*f|%*f\n", &matriculaAtual) != EOF)
@@ -53,7 +73,7 @@ int verificarDuplicidadeNumeroDaMatricula(int numeroDaMatricula, FILE *arquivo, 
 void limparBuffer()
 {
     int c;
-    /* Caso o usuario digite um valor errado, exemplo: numero muito grande para um inteiro ou digitar um 'd'para 
+    /* Caso o usuario digite um valor errado, exemplo: numero muito grande para um inteiro ou digitar um 'd'para
     uma variavel do tipo inteiro é necessario limpar o buffer para evitar loops infinitos
     */
     while ((c = getchar()) != '\n' && c != EOF)
@@ -142,7 +162,8 @@ void cadastrarAluno(FILE *arquivo, const char caminho[])
 void buscarAlunoPorMatricula(FILE *arquivo, const char caminho[], int buscaNumeroDaMatricula)
 {
     arquivo = fopen(caminho, "r");
-    if (arquivo == NULL) printf("Erro, arquivo não abriu");
+    if (arquivo == NULL)
+        printf("Erro, arquivo não abriu");
     int matriculaAtual;
     char auxNome[51];
     double nota1, nota2, nota3;
@@ -152,26 +173,28 @@ void buscarAlunoPorMatricula(FILE *arquivo, const char caminho[], int buscaNumer
         // Se o número da matriculaAtual for igual ao buscaNumeroDaMatricula apresenta o aluno na tela que tem tal matricula
         if (matriculaAtual == buscaNumeroDaMatricula)
         {
-            printf("\nAluno portador da matricula %i: \n", matriculaAtual);
-            printf("Nome: %s \n", auxNome);
-            printf("Notas: %.1f - %.1f - %.1f \n", nota1, nota2, nota3);
+            printf("Aluno da matricula %i encontrado\n", buscaNumeroDaMatricula);
+            printf("Aluno: %s\n", auxNome);
+            printf("Média do aluno: %.1f\n", (nota1 + nota2 + nota3) / 3);
             fclose(arquivo);
             return;
-        }   
+        }
     }
     fclose(arquivo);
     // Se ele percorrer o arquivo todo e não encontrar o número da matricula la dentro, siginifica que não existe aquela matricula dentro do arquivo
-    printf("O aluno portador da matricula %i não foi encontrado", buscaNumeroDaMatricula);
+    printf("Não existe a matricula %i no nosso banco de dados", buscaNumeroDaMatricula);
 }
 int main()
 {
     FILE *alunos = NULL;
     const char caminhoTxT[] = "alunos.txt";
     int opcao;
-    int matriculaBusca;
+    int matriculaBusca = 0;
 
     do
     {
+        // Inicializa a variavel para caso o usuario digitar uma letra não quebrar
+        opcao = -1;
         printf("\n===== MENU =====\n");
         printf("1 - Cadastrar aluno\n");
         printf("2 - Buscar aluno por matricula\n");
@@ -183,25 +206,29 @@ int main()
         if (opcao == 1)
         {
             cadastrarAluno(alunos, caminhoTxT);
+            limpaTela();
         }
         else if (opcao == 2)
         {
             printf("Digite a matricula que deseja buscar: ");
             scanf("%d", &matriculaBusca);
+            while (matriculaBusca / 10000000 == 0 || matriculaBusca / 10000000 >= 10)
+            {
+                limparBuffer();
+                printf("Erro, sua matricula tem menos ou mais de 8 digitos numéricos\n");
+                printf("Me informe sua matricula novamente:");
+                scanf("%i", &matriculaBusca);
+            }
             limparBuffer();
-
             buscarAlunoPorMatricula(alunos, caminhoTxT, matriculaBusca);
+            limpaTela();
         }
-        else if (opcao == 0)
-        {
-            printf("Saindo...\n");
-        }
-        else
+        else if (opcao != 0)
         {
             printf("Opção invalida!\n");
         }
 
     } while (opcao != 0);
-
+    printf("Saindo...\n");
     return 0;
 }
