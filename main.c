@@ -184,6 +184,123 @@ void buscarAlunoPorMatricula(FILE *arquivo, const char caminho[], int buscaNumer
     // Se ele percorrer o arquivo todo e não encontrar o número da matricula la dentro, siginifica que não existe aquela matricula dentro do arquivo
     printf("Não existe a matricula %i no nosso banco de dados", buscaNumeroDaMatricula);
 }
+// Função feita para mostrar a média de todos os alunos
+void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
+{
+    int tamanhoPagina = 10; // Exibe de 10 em 10 alunos
+    int paginaAtual = 1;
+    char opcao;
+
+    do
+    {
+        arquivo = fopen(caminho, "r");
+        if (arquivo == NULL)
+        {
+            printf("Erro: O arquivo nao pôde ser aberto.\n");
+            return;
+        }
+
+        int matriculaAtual;
+        char auxNome[51];
+        double nota1, nota2, nota3;
+
+        int totalRegistros = 0;
+        int exibidosNaPagina = 0;
+
+        // Define os limites do bloco de linhas da página atual
+        int linhaInicial = (paginaAtual - 1) * tamanhoPagina;
+        int linhaFinal = paginaAtual * tamanhoPagina;
+
+        printf("\n===== LISTAGEM DE ALUNOS (PAGINA %i) =====\n", paginaAtual);
+
+        // Varre o arquivo linha por linha
+        while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", auxNome, &matriculaAtual, &nota1, &nota2, &nota3) != EOF)
+        {
+            // Se a linha atual estiver dentro do bloco da página, exibe na tela
+            if (totalRegistros >= linhaInicial && totalRegistros < linhaFinal)
+            {
+                double media = (nota1 + nota2 + nota3) / 3;
+                printf("Aluno: %-20s | Matricula: %-8i | Media: %.1f\n", auxNome, matriculaAtual, media);
+                exibidosNaPagina++;
+            }
+            totalRegistros++; // Conta quantos alunos existem no total do arquivo
+        }
+        fclose(arquivo);
+
+        if (exibidosNaPagina == 0 && paginaAtual > 1)
+        {
+            printf("Nenhum aluno encontrado nesta pagina.\n");
+        }
+
+        // Menu de navegação da paginação
+        printf("\n[N] Proxima Pagina | [A] Pagina Anterior | [S] Sair do Menu: ");
+        scanf(" %c", &opcao); // O espaço antes de %c limpa o buffer de quebras de linha
+
+        if ((opcao == 'N' || opcao == 'n') && (linhaFinal < totalRegistros))
+        {
+            paginaAtual++;
+        }
+        else if ((opcao == 'A' || opcao == 'a') && paginaAtual > 1)
+        {
+            paginaAtual--;
+        }
+        else if (opcao != 'S' && opcao != 's')
+        {
+            printf("Opcao invalida ou nao ha mais paginas nessa direcao!\n");
+        }
+
+    } while (opcao != 'S' && opcao != 's');
+}
+// Função feita para mostrar o aluno com maior média
+void destaqueAcademico(FILE *arquivo, const char caminho[])
+{
+    arquivo = fopen(caminho, "r");
+
+    if (arquivo == NULL)
+    {
+        printf("Erro ao abrir o arquivo!\n");
+        return;
+    }
+
+    char nomeAtual[51];
+    int matriculaAtual;
+    double nota1, nota2, nota3;
+    double maiorMedia = -1.0;
+
+    char nomeMaiorMedia[51];
+    int matriculaMaiorMedia = 0;
+
+    while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n",
+                  nomeAtual,
+                  &matriculaAtual,
+                  &nota1,
+                  &nota2,
+                  &nota3) != EOF)
+    {
+        double media = (nota1 + nota2 + nota3) / 3.0;
+
+        if (media > maiorMedia)
+        {
+            maiorMedia = media;
+            matriculaMaiorMedia = matriculaAtual;
+            strcpy(nomeMaiorMedia, nomeAtual);
+        }
+    }
+
+    fclose(arquivo);
+
+    if (maiorMedia >= 0)
+    {
+        printf("\n=== DESTAQUE ACADEMÊMICO ===\n");
+        printf("Nome: %s\n", nomeMaiorMedia);
+        printf("Matrícula: %i\n", matriculaMaiorMedia);
+        printf("Média: %.2f\n", maiorMedia);
+    }
+    else
+    {
+        printf("Nenhum aluno encontrado no arquivo.\n");
+    }
+}
 int main()
 {
     FILE *alunos = NULL;
@@ -198,6 +315,8 @@ int main()
         printf("\n===== MENU =====\n");
         printf("1 - Cadastrar aluno\n");
         printf("2 - Buscar aluno por matricula\n");
+        printf("3 - Apresentar média aritimetica de todos os alunos\n");
+        printf("4 - Destaque acadêmico\n");
         printf("0 - Sair\n");
         printf("Escolha uma opção: ");
         scanf("%d", &opcao);
@@ -221,6 +340,16 @@ int main()
             }
             limparBuffer();
             buscarAlunoPorMatricula(alunos, caminhoTxT, matriculaBusca);
+            limpaTela();
+        }
+        else if (opcao == 3)
+        {
+            apresentarMediaDeTodosAlunos(alunos, caminhoTxT);
+            limpaTela();
+        }
+        else if (opcao == 4)
+        {
+            destaqueAcademico(alunos,caminhoTxT);
             limpaTela();
         }
         else if (opcao != 0)

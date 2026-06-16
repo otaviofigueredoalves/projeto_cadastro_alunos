@@ -1,7 +1,7 @@
 # Documentação do projeto de Sistema de Cadastro de Alunos
 <p>Avaliação final do semestre 1 de ciência da computação</p>
 
-> 🚧 **Status do Projeto:** Em Desenvolvimento 
+> 🚧 **Status do Projeto:** Finalizado 
 
 Este projeto consiste em um sistema de gerenciamento escolar desenvolvido na linguagem **C**. O objetivo principal é consolidar os conceitos de estruturas de dados (`struct`), persistência de dados em arquivos de texto, manipulação de fluxos de entrada/saída (`I/O`) e técnicas avançadas de validação e programação defensiva.
 
@@ -75,14 +75,14 @@ O projeto encontra-se em desenvolvimento ativo. As seguintes funcionalidades e m
 
 ### 🎯 Funcionalidades Principais
 - [X] **Menu Interativo:** Implementação de uma interface textual estruturada via terminal no método `main` para navegação do usuário.
-- [ ] **Exibição Geral do Sistema:** Criação de uma função para ler o arquivo e apresentar a listagem completa de todos os alunos registrados juntamente com suas respectivas matrículas.
-- [/] **Métricas de Desempenho e Médias:** Desenvolver o cálculo automático da média aritmética das 3 notas de cada estudante. O formato de exibição desta métrica deve ser de forma individual, buscando o aluno por matrícula,  e de forma geral apresentando todos os alunos.
-  * [ ] Exibição da média de forma coletiva (junto à listagem geral de todos os alunos);
+- [X] **Exibição Geral do Sistema:** Criação de uma função para ler o arquivo e apresentar a listagem completa de todos os alunos registrados juntamente com suas respectivas matrículas.
+- [X] **Métricas de Desempenho e Médias:** Desenvolver o cálculo automático da média aritmética das 3 notas de cada estudante. O formato de exibição desta métrica deve ser de forma individual, buscando o aluno por matrícula,  e de forma geral apresentando todos os alunos.
+  * [X] Exibição da média de forma coletiva (junto à listagem geral de todos os alunos);
   * [X] Consulta individualizada (através de uma função de busca por matrícula ou por nome);
-- [ ] **Destaque Acadêmico:** Desenvolver um algoritmo de busca para identificar e exibir em tela o aluno que possui a **maior média geral** do sistema.
+- [X] **Destaque Acadêmico:** Desenvolver um algoritmo de busca para identificar e exibir em tela o aluno que possui a **maior média geral** do sistema.
 
 ### ⚙️ Escalabilidade e Otimizações(Se for realmente necessário)
-- [ ] **Tratamento de Paginação:** Adaptar a leitura do arquivo para trabalhar em blocos de dados (ex: exibir de 10 em 10 alunos), garantindo estabilidade e baixo consumo de memória RAM caso a base de dados ultrapasse a meta inicial de 100 alunos.
+- [X] **Tratamento de Paginação:** Adaptar a leitura do arquivo para trabalhar em blocos de dados (ex: exibir de 10 em 10 alunos), garantindo estabilidade e baixo consumo de memória RAM caso a base de dados ultrapasse a meta inicial de 100 alunos.
 
 ### ⏳ Funcionalidades Secundárias (Se houver tempo hábil)
-- [ ] **Módulo de Edição/Remoção:** Criação de rotinas para atualizar notas/nomes ou deletar o registro de alunos diretamente no arquivo `.txt`.
+- [-] **Módulo de Edição/Remoção:** Criação de rotinas para atualizar notas/nomes ou deletar o registro de alunos diretamente no arquivo `.txt`.
