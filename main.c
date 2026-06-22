@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 typedef struct
 {
@@ -8,58 +9,32 @@ typedef struct
     int matricula;
     double notas[3];
 } Aluno;
-// Função feita para limpar o terminal
+
 void limpaTela()
 {
-    printf("Pressione qualquer tecla para continuar:");
+    printf("\nPressione ENTER para continuar...");
     getchar();
-    char c;
-    /* Caso o usuario digite um valor errado, exemplo: numero muito grande para um inteiro ou digitar um 'd'para
-    uma variavel do tipo inteiro é necessario limpar o buffer para evitar loops infinitos
-    */
-    while ((c = (char)getchar()) != '\n' && c != EOF)
-        ;
 #ifdef _WIN32
-    // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
     system("cls");
 #else
-    // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
     system("clear");
 #endif
 }
-// Função feita para validar se o nome tem caracteres validos: letras com ou sem acento ou espaços
-int verificarCaracteresValidosNome(char string[])
+
+void limparBuffer()
 {
-    for (size_t i = 0; i < strlen(string); i++)
-    {
-        // Se a minha string tiver caracteres diferentes de letras sem assentos entra aqui.
-        if (((string[i] < 65 || (string[i] > 90 && string[i] < 97)) || string[i] > 122) && string[i] != 32)
-        {
-            // Guardo todas as letras com acentos.
-            const char *acentos_validos = "áàãâéêíóôõúçÁÀÃÂÉÊÍÓÔÕÚÇ";
-            char *temAcento;
-            // Valida se a "string[i]" esta presente no vetor "acentos_validos" , se tiver significa que ela é uma letra com acento.
-            temAcento = strchr(acentos_validos, string[i]);
-            // Se o caracter não for uma letra com acento, ele para o codigo na hora e retorna 1.
-            if (temAcento == NULL)
-            {
-                return 0;
-            }
-        }
-    }
-    return 1;
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
 }
-// Verifica se dentro do arquivo ja tem aquela matricula
-int verificarDuplicidadeNumeroDaMatricula(int numeroDaMatricula, FILE *arquivo, const char caminho[])
+int verificarDuplicidadeNumeroDaMatricula(int numeroDaMatricula, const char caminho[])
 {
-    arquivo = fopen(caminho, "r");
+    FILE *arquivo = fopen(caminho, "r");
     if (arquivo == NULL)
         return 0;
+
     int matriculaAtual;
-    // Corro todo o arquivo pegando o valor da matricula
     while (fscanf(arquivo, "%*[^|]|%i|%*f|%*f|%*f\n", &matriculaAtual) != EOF)
     {
-        // Se a matricula que eu encontrei for igual a entregada na função significa que é uma matricula duplicada
         if (matriculaAtual == numeroDaMatricula)
         {
             fclose(arquivo);
@@ -69,47 +44,46 @@ int verificarDuplicidadeNumeroDaMatricula(int numeroDaMatricula, FILE *arquivo, 
     fclose(arquivo);
     return 1;
 }
-// Função auxiliar para limpar o buffer do teclado sempre que usarmos scanf
-void limparBuffer()
+int contarAlunos(const char caminho[])
 {
-    int c;
-    /* Caso o usuario digite um valor errado, exemplo: numero muito grande para um inteiro ou digitar um 'd'para
-    uma variavel do tipo inteiro é necessario limpar o buffer para evitar loops infinitos
-    */
-    while ((c = getchar()) != '\n' && c != EOF)
-        ;
-}
-// Função para cadastrar nome, numero da matricula e notas
-void cadastrarAluno(FILE *arquivo, const char caminho[])
-{
-    Aluno alunoNovo;
-    // Inicia as variaveis para caso usuário tente adicionar outro tipo nas variaveis(exemplo: variavel inteiro e o usuário coloca um 'c')
-    alunoNovo.matricula = 0;
-    for (int i = 0; i < 3; i++)
+    FILE *arquivo = fopen(caminho, "r");
+    if (arquivo == NULL)
+        return 0;
+
+    int total = 0;
+    char buffer[200];
+    while (fgets(buffer, sizeof(buffer), arquivo) != NULL)
     {
-        alunoNovo.notas[i] = -1;
+        total++;
+    }
+    fclose(arquivo);
+    return total;
+}
+
+// Função para cadastrar nome, numero da matricula e notas
+void cadastrarAluno(const char caminho[])
+{
+    if (contarAlunos(caminho) >= 100)
+    {
+        printf("Erro: Limite maximo de 100 alunos atingido!\n");
+        return;
     }
 
-    printf("Me informe seu nome:");
-    // Ler a linha que vc escreveu e se tiver mais de 50 caracteres ou algum caracter inválido ele da erro e pede para escrever o nome novamente
+    Aluno alunoNovo;
+
+    printf("Me informe seu nome: ");
     while (fgets(alunoNovo.nome, sizeof(alunoNovo.nome), stdin) != NULL)
     {
         int precisaLimpar = 0;
-        // Verifica se o ultimo caracter da linha é '\n' se não for, significa que o usuario escreveu mais de 50 caracteres e vai ser necessario limpar o buffer
         if (strlen(alunoNovo.nome) > 0 && alunoNovo.nome[strlen(alunoNovo.nome) - 1] != '\n')
         {
             precisaLimpar = 1;
         }
-        // Acresenta '\0' na posição em que o '\n' está
         alunoNovo.nome[strcspn(alunoNovo.nome, "\n")] = '\0';
-        // Se o usuário escreveu mais de 50 caracteres ou caracteres invalidos ou não escreveu nada, é solicitado que ele informe o nome novamente
-        if (precisaLimpar || strlen(alunoNovo.nome) == 0 || verificarCaracteresValidosNome(alunoNovo.nome) == 0)
+        if (precisaLimpar || strlen(alunoNovo.nome) == 0)
         {
-            if (precisaLimpar)
-            {
-                limparBuffer();
-            }
-            printf("Erro: O nome deve ter entre 1 e 50 caracteres validos.\n");
+            if (precisaLimpar) limparBuffer();
+            printf("Erro: O nome deve ter entre 1 e 50 caracteres.\n");
             printf("Me informe seu nome novamente: ");
         }
         else
@@ -118,34 +92,45 @@ void cadastrarAluno(FILE *arquivo, const char caminho[])
         }
     }
 
-    printf("Me informe sua matricula:");
-    scanf("%i", &alunoNovo.matricula);
-    // Se a matricula tiver menos ou mais de 8 digitos ou se ja houver essa matricula dentro do arquivo, é solicitado que ele digite outra matricula
-    while (alunoNovo.matricula / 10000000 == 0 || alunoNovo.matricula / 10000000 >= 10 || verificarDuplicidadeNumeroDaMatricula(alunoNovo.matricula, arquivo, caminho) == 0)
+    int leituraValida;
+    printf("Me informe sua matricula (numero positivo): ");
+    while (1)
     {
-        limparBuffer();
-        printf("Erro, sua matricula tem menos ou mais de 8 digitos numéricos ou vc digitou uma matricula ja existente\n");
-        printf("Me informe sua matricula novamente:");
-        scanf("%i", &alunoNovo.matricula);
+        leituraValida = scanf("%i", &alunoNovo.matricula);
+        if (leituraValida != 1 || alunoNovo.matricula <= 0 || verificarDuplicidadeNumeroDaMatricula(alunoNovo.matricula, caminho) == 0)
+        {
+            limparBuffer();
+            printf("Erro: Matricula invalida, nula, negativa, nao-numerica ou ja existente.\n");
+            printf("Me informe sua matricula novamente: ");
+        }
+        else
+        {
+            break;
+        }
     }
     limparBuffer();
 
     for (int i = 0; i < 3; i++)
     {
-        printf("Me informe sua %i° nota:", i + 1);
-        scanf("%lf", &alunoNovo.notas[i]);
-        // Se a nota digitada for menor ou maior que 10 é uma nota invalida e vai ser solicitado digitar novamente a nota
-        while (alunoNovo.notas[i] < 0 || alunoNovo.notas[i] > 10)
+        printf("Me informe sua %i° nota: ", i + 1);
+        while (1)
         {
-            limparBuffer();
-            printf("Erro: Permitido apenas notas entre 0 e 10\n");
-            printf("Me informe sua %i° nota novamente:", i + 1);
-            scanf("%lf", &alunoNovo.notas[i]);
+            leituraValida = scanf("%lf", &alunoNovo.notas[i]);
+            if (leituraValida != 1 || alunoNovo.notas[i] < 0 || alunoNovo.notas[i] > 10)
+            {
+                limparBuffer();
+                printf("Erro: Permitido apenas notas numericas entre 0 e 10.\n");
+                printf("Me informe sua %i° nota novamente: ", i + 1);
+            }
+            else
+            {
+                break;
+            }
         }
         limparBuffer();
     }
 
-    arquivo = fopen(caminho, "a");
+    FILE *arquivo = fopen(caminho, "a");
     if (arquivo == NULL)
     {
         printf("Erro ao abrir o arquivo!\n");
@@ -159,19 +144,20 @@ void cadastrarAluno(FILE *arquivo, const char caminho[])
     printf("Aluno cadastrado com sucesso!\n");
 }
 // Função feita para buscar aluno por matricula
-void buscarAlunoPorMatricula(FILE *arquivo, const char caminho[], int buscaNumeroDaMatricula)
+void buscarAlunoPorMatricula(const char caminho[], int buscaNumeroDaMatricula)
 {
-    arquivo = fopen(caminho, "r");
+    FILE *arquivo = fopen(caminho, "r");
     if (arquivo == NULL)
-        printf("Erro, arquivo não abriu");
+    {
+        printf("Erro: Banco de dados nao existe ainda.\n");
+        return;
+    }
     Aluno aluno;
-    // Ele corre todo o arquivio e pega o nome o numero da matricula e as notas do aluno
     while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", aluno.nome, &aluno.matricula, &aluno.notas[0], &aluno.notas[1], &aluno.notas[2]) != EOF)
     {
-        // Se o número da aluno.matricula for igual ao buscaNumeroDaMatricula apresenta o aluno na tela que tem tal matricula
         if (aluno.matricula == buscaNumeroDaMatricula)
         {
-            printf("Aluno da matricula %i encontrado\n", buscaNumeroDaMatricula);
+            printf("\nAluno da matricula %i encontrado\n", buscaNumeroDaMatricula);
             printf("Aluno: %s\n", aluno.nome);
             printf("Média do aluno: %.1lf\n", (aluno.notas[0] + aluno.notas[1] + aluno.notas[2]) / 3);
             fclose(arquivo);
@@ -179,47 +165,42 @@ void buscarAlunoPorMatricula(FILE *arquivo, const char caminho[], int buscaNumer
         }
     }
     fclose(arquivo);
-    // Se ele percorrer o arquivo todo e não encontrar o número da matricula la dentro, siginifica que não existe aquela matricula dentro do arquivo
-    printf("Não existe a matricula %i no nosso banco de dados", buscaNumeroDaMatricula);
+    printf("Nao existe a matricula %i no nosso banco de dados.\n", buscaNumeroDaMatricula);
 }
 // Função feita para mostrar a média de todos os alunos
-void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
+void apresentarMediaDeTodosAlunos(const char caminho[])
 {
-    int tamanhoPagina = 10; // Exibe de 10 em 10 alunos
+    int tamanhoPagina = 10;
     int paginaAtual = 1;
     char opcao;
 
     do
     {
-        arquivo = fopen(caminho, "r");
+        FILE *arquivo = fopen(caminho, "r");
         if (arquivo == NULL)
         {
-            printf("Erro: O arquivo nao pôde ser aberto.\n");
+            printf("Nenhum registro encontrado.\n");
             return;
         }
 
         Aluno aluno;
-
         int totalRegistros = 0;
         int exibidosNaPagina = 0;
 
-        // Define os limites do bloco de linhas da página atual
         int linhaInicial = (paginaAtual - 1) * tamanhoPagina;
         int linhaFinal = paginaAtual * tamanhoPagina;
 
         printf("\n===== LISTAGEM DE ALUNOS (PAGINA %i) =====\n", paginaAtual);
 
-        // Varre o arquivo linha por linha
         while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n", aluno.nome, &aluno.matricula, &aluno.notas[0], &aluno.notas[1], &aluno.notas[2]) != EOF)
         {
-            // Se a linha atual estiver dentro do bloco da página, exibe na tela
             if (totalRegistros >= linhaInicial && totalRegistros < linhaFinal)
             {
-                double media = (aluno.notas[0] + aluno.notas[1] + aluno.notas[2]) / 3;
+                double media = (aluno.notas[0] + aluno.notas[1] + aluno.notas[2]) / 3.0;
                 printf("Aluno: %-20s | Matricula: %-8i | Media: %.1f\n", aluno.nome, aluno.matricula, media);
                 exibidosNaPagina++;
             }
-            totalRegistros++; // Conta quantos alunos existem no total do arquivo
+            totalRegistros++;
         }
         fclose(arquivo);
 
@@ -228,18 +209,16 @@ void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
             printf("Nenhum aluno encontrado nesta pagina.\n");
         }
 
-        // Menu de navegação da paginação
         printf("\n[N] Proxima Pagina | [A] Pagina Anterior | [S] Sair do Menu: ");
-        scanf(" %c", &opcao); // O espaço antes de %c limpa o buffer de quebras de linha
+        scanf(" %c", &opcao);
+        limparBuffer();
 
         if ((opcao == 'N' || opcao == 'n') && (linhaFinal < totalRegistros))
         {
             paginaAtual++;
             #ifdef _WIN32
-                // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
                 system("cls");
             #else
-                // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
                 system("clear");
             #endif
         }
@@ -247,10 +226,8 @@ void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
         {
             paginaAtual--;
             #ifdef _WIN32
-                // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
                 system("cls");
             #else
-                // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
                 system("clear");
             #endif
         }
@@ -262,28 +239,22 @@ void apresentarMediaDeTodosAlunos(FILE *arquivo, const char caminho[])
     } while (opcao != 'S' && opcao != 's');
 }
 // Função feita para mostrar o aluno com maior média
-void destaqueAcademico(FILE *arquivo, const char caminho[])
+void destaqueAcademico(const char caminho[])
 {
-    arquivo = fopen(caminho, "r");
-
+    FILE *arquivo = fopen(caminho, "r");
     if (arquivo == NULL)
     {
-        printf("Erro ao abrir o arquivo!\n");
+        printf("Banco de dados vazio!\n");
         return;
     }
 
     Aluno aluno;
     double maiorMedia = -1.0;
-
     char nomeMaiorMedia[51];
     int matriculaMaiorMedia = 0;
 
     while (fscanf(arquivo, "%[^|]|%i|%lf|%lf|%lf\n",
-                  aluno.nome,
-                  &aluno.matricula,
-                  &aluno.notas[0],
-                  &aluno.notas[1],
-                  &aluno.notas[2]) != EOF)
+                  aluno.nome, &aluno.matricula, &aluno.notas[0], &aluno.notas[1], &aluno.notas[2]) != EOF)
     {
         double media = (aluno.notas[0] + aluno.notas[1] + aluno.notas[2]) / 3.0;
 
@@ -294,15 +265,14 @@ void destaqueAcademico(FILE *arquivo, const char caminho[])
             strcpy(nomeMaiorMedia, aluno.nome);
         }
     }
-
     fclose(arquivo);
 
     if (maiorMedia >= 0)
     {
-        printf("\n=== DESTAQUE ACADEMÊMICO ===\n");
+        printf("\n=== DESTAQUE ACADEMICO ===\n");
         printf("Nome: %s\n", nomeMaiorMedia);
-        printf("Matrícula: %i\n", matriculaMaiorMedia);
-        printf("Média: %.2f\n", maiorMedia);
+        printf("Matricula: %i\n", matriculaMaiorMedia);
+        printf("Media: %.2f\n", maiorMedia);
     }
     else
     {
@@ -311,65 +281,63 @@ void destaqueAcademico(FILE *arquivo, const char caminho[])
 }
 int main()
 {
-    FILE *alunos = NULL;
     const char caminhoTxT[] = "alunos.txt";
     int opcao;
     int matriculaBusca = 0;
 
     do
     {
-        // Inicializa a variavel para caso o usuario digitar uma letra não quebrar
         opcao = -1;
         printf("\n===== MENU =====\n");
         printf("1 - Cadastrar aluno\n");
         printf("2 - Buscar aluno por matricula\n");
-        printf("3 - Apresentar média aritimetica de todos os alunos\n");
-        printf("4 - Destaque acadêmico\n");
+        printf("3 - Apresentar media de todos os alunos\n");
+        printf("4 - Destaque academico\n");
         printf("0 - Sair\n");
-        printf("Escolha uma opção: ");
-        scanf("%d", &opcao);
+        printf("Escolha uma opcao: ");
+        
+        if (scanf("%d", &opcao) != 1) {
+            opcao = -1; 
+        }
         limparBuffer();
 
         if (opcao == 1)
         {
-            cadastrarAluno(alunos, caminhoTxT);
+            cadastrarAluno(caminhoTxT);
             limpaTela();
         }
         else if (opcao == 2)
         {
             printf("Digite a matricula que deseja buscar: ");
-            scanf("%d", &matriculaBusca);
-            while (matriculaBusca / 10000000 == 0 || matriculaBusca / 10000000 >= 10)
+            if (scanf("%d", &matriculaBusca) != 1 || matriculaBusca <= 0)
             {
-                limparBuffer();
-                printf("Erro, sua matricula tem menos ou mais de 8 digitos numéricos\n");
-                printf("Me informe sua matricula novamente:");
-                scanf("%i", &matriculaBusca);
+                printf("Matricula invalida!\n");
+            }
+            else
+            {
+                buscarAlunoPorMatricula(caminhoTxT, matriculaBusca);
             }
             limparBuffer();
-            buscarAlunoPorMatricula(alunos, caminhoTxT, matriculaBusca);
             limpaTela();
         }
         else if (opcao == 3)
         {
             #ifdef _WIN32
-                // Se o sistema for Windows (32 ou 64 bits), ele compila esta linha:
                 system("cls");
             #else
-                // Se for qualquer outro sistema (Linux, macOS, Unix), compila esta:
                 system("clear");
             #endif
-            apresentarMediaDeTodosAlunos(alunos, caminhoTxT);
+            apresentarMediaDeTodosAlunos(caminhoTxT);
             limpaTela();
         }
         else if (opcao == 4)
         {
-            destaqueAcademico(alunos, caminhoTxT);
+            destaqueAcademico(caminhoTxT);
             limpaTela();
         }
         else if (opcao != 0)
         {
-            printf("Opção invalida!\n");
+            printf("Opcao invalida!\n");
         }
 
     } while (opcao != 0);
